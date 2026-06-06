@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Round</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Round {{ round }}</h2>
+
+    <form method="post">
+        {% for r in resources %}
+        <div class="card">
+            <div class="player-title">Player {{ loop.index }}</div>
+            <div class="resource-bar">
+                <div class="resource-fill" style="width: {{ r }}%;"></div>
+            </div>
+            Resources: {{ r }} <br><br>
+            Contribute:
+            <input type="number" name="p{{ loop.index0 }}" min="0" max="{{ r }}" required>
+        </div>
+        {% endfor %}
+
+        <div class="center">
+            <button type="submit">END ROUND</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

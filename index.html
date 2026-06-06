@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agent Clash</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: radial-gradient(circle, #2a2a2a, #0f0f0f);
+    color: #f2f2f2;
+}
+
+.screen {
+    display: none;
+    max-width: 1000px;
+    margin: auto;
+    padding: 40px;
+}
+
+.active { display: block; }
+
+h1, h2 {
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #ccc;
+    margin-bottom: 40px;
+}
+
+button {
+    background: linear-gradient(145deg, #ffb347, #ff9800);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #b36a00;
+}
+
+button:hover { transform: translateY(2px); box-shadow: 0 4px 0 #b36a00; }
+button:active { transform: translateY(6px); box-shadow: none; }
+
+.center { text-align: center; margin-top: 30px; }
+
+.card {
+    background: #1b1b1b;
+    border-radius: 14px;
+    padding: 22px;
+    margin: 18px 0;
+    box-shadow: inset 0 0 0 2px #333, 0 10px 25px rgba(0,0,0,0.6);
+}
+
+input {
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    width: 90px;
+}
+
+.bar {
+    height: 16px;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 8px 0 12px;
+}
+
+.fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+    <h1>AGENT CLASH</h1>
+    <p class="subtitle">
+        Competitive Resource Allocation Board Game
+    </p>
+    <div class="center">
+        <button onclick="go('setup')">Play Now</button>
+    </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup" class="screen">
+    <h2>Game Setup</h2>
+    <div class="card center">
+        Players (1–5):
+        <input id="players" type="number" min="1" max="5" value="2"><br><br>
+        Rounds:
+        <input id="rounds" type="number" min="1" max="10" value="5"><br><br>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+    <h2 id="roundTitle"></h2>
+    <div id="gameArea"></div>
+    <div class="center">
+        <button onclick="endRound()">End Round</button>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen">
+    <h2>Final Results</h2>
+    <div id="results"></div>
+    <div class="center">
+        <button onclick="go('home')">Play Again</button>
+    </div>
+</div>
+
+<script>
+let players, rounds, currentRound;
+let resources = [], scores = [];
+const multiplier = 1.5;
+
+function go(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+    players = +playersInput.value;
+    rounds = +roundsInput.value;
+    currentRound = 1;
+    resources = Array(players).fill(100);
+    scores = Array(players).fill(0);
+    renderRound();
+    go('game');
+}
+
+const playersInput = document.getElementById("players");
+const roundsInput = document.getElementById("rounds");
+
+function renderRound() {
+    roundTitle.innerText = "Round " + currentRound;
+    gameArea.innerHTML = "";
+
+    resources.forEach((r, i) => {
+        const percent = Math.min((r / 200) * 100, 100);
+        gameArea.innerHTML += `
+        <div class="card">
+            <strong>Player ${i + 1}</strong><br>
+            Resources: ${r}
+            <div class="bar">
+                <div class="fill" style="width:${percent}%"></div>
+            </div>
+            Contribute:
+            <input type="number" id="p${i}" min="0" max="${r}" value="0">
+        </div>`;
+    });
+}
+
+function endRound() {
+    let pool = 0;
+    for (let i = 0; i < players; i++) {
+        let c = +document.getElementById(`p${i}`).value;
+        c = Math.min(c, resources[i]);
+        resources[i] -= c;
+        pool += c;
+    }
+
+    pool = Math.floor(pool * multiplier);
+    const share = Math.floor(pool / players);
+
+    for (let i = 0; i < players; i++) {
+        resources[i] += share;
+        scores[i] += resources[i];
+    }
+    currentRound++;
+    currentRound > rounds ? showResults() : renderRound();
+}
+
+function showResults() {
+    results.innerHTML = "";
+    const winner = scores.indexOf(Math.max(...scores)) + 1;
+
+    scores.forEach((s, i) => {
+        results.innerHTML += <div class="card">Player ${i + 1} Score: ${s}</div>;
+    });
+
+    results.innerHTML += <h3 class="center">🏆 Winner: Player ${winner}</h3>;
+    go('result');
+}
+</script>
+
+</body>
+</html>
